@@ -1,4 +1,4 @@
-FROM node:boron
+FROM node:19-bullseye
 
 MAINTAINER Ivan Font <ifont@redhat.com>
 
@@ -6,11 +6,12 @@ MAINTAINER Ivan Font <ifont@redhat.com>
 RUN mkdir -p /usr/src/app
 WORKDIR /usr/src/app
 
-# Clone game source code
-RUN git clone https://github.com/font/pacman.git .
+COPY ./package.json /usr/src/app
 
 # Install app dependencies
 RUN npm install
+
+COPY . /usr/src/app
 
 # Expose port 8080
 EXPOSE 8080

@@ -38,6 +38,7 @@ app.use(function(err, req, res, next) {
     if (res.headersSent) {
         return next(err)
     }
+
     // set locals, only providing error in development
     res.locals.message = err.message;
     res.locals.error = req.app.get('env') === 'development' ? err : {};
@@ -45,16 +46,6 @@ app.use(function(err, req, res, next) {
     // render the error page
     res.status(err.status || 500);
     res.render('error');
-});
-
-Database.connect(app, function(err) {
-    console.log('Inside App Database.connect');
-    if (err) {
-        console.log('Failed to connect to database server');
-    } else {
-        console.log('Connected to database server successfully');
-    }
-
 });
 
 module.exports = app;

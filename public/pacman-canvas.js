@@ -46,7 +46,7 @@ function geronimo() {
              for (var i = 0; i < msg.length; i++) {
                 var rank = i + 1;
                 // Can we make this shorter?
-                $("#highscore-table tbody").append("<tr><td id='rank'>" + rank + "</td><td id='playername'>" + msg[i]['name'] + "</td><td id='cloudprovider'>" + msg[i]['cloud'] + "</td><td id='zone'>" + msg[i]['zone'] + "</td><td id='host'>" + msg[i]['host'] + "</td><td id='score'>" + msg[i]['score'] + "</td></tr>");
+                $("#highscore-table tbody").append("<tr><td id='rank'>" + rank + "</td><td id='playername'>" + msg[i]['name'] + "</td><td id='score'>" + msg[i]['score'] + "</td></tr>");
              }
            }
         });
@@ -65,7 +65,7 @@ function geronimo() {
                 $("#livestats-table tbody").text("");
                 for (var i = 0; i < msg.length; i++) {
                     var userId = i + 1;
-                    $("#livestats-table tbody").append("<tr><td id='userid'>" + userId + "</td><td id='cloudprovider'>" + msg[i]['cloud'] + "</td><td id='zone'>" + msg[i]['zone'] + "</td><td id='host'>" + msg[i]['host'] + "</td><td id='score'>" + msg[i]['score'] + "</td><td id='level'>" + msg[i]['level'] + "</td><td id='lives'>" + msg[i]['lives'] + "</td><td id='elapsedtime'>" + msg[i]['et'] + "</td><td id='txncount'>" + msg[i]['txncount'] + "</td></tr>");
+                    $("#livestats-table tbody").append("<tr><td id='userid'>" + userId + "</td><td id='score'>" + msg[i]['score'] + "</td><td id='level'>" + msg[i]['level'] + "</td><td id='lives'>" + msg[i]['lives'] + "</td><td id='elapsedtime'>" + msg[i]['et'] + "</td><td id='txncount'>" + msg[i]['txncount'] + "</td></tr>");
                 }
 
                 if (game.user.livestats) {
@@ -83,9 +83,6 @@ function geronimo() {
            url: 'highscores',
            data: {
              name: n,
-             cloud: c,
-             zone: z,
-             host: h,
              score: s,
              level: l
              },
@@ -96,31 +93,6 @@ function geronimo() {
             },
             error: function(errorThrown) {
                 console.log(errorThrown);
-            }
-        });
-    }
-
-    function ajaxGetCloudMetadata() {
-        $.ajax({
-            datatype: "json",
-            type: "GET",
-            url: "location/metadata",
-            timeout: 30000, // wait no more than 30 seconds
-            success: function(msg){
-                $(".cloudprovider").append("<b>" + msg['cloud'] + "</b>");
-                game.cloudProvider = msg['cloud'];
-                $(".zone").append("<b>" + msg['zone'] + "</b>");
-                game.zone = msg['zone'];
-                $(".host").append("<b>" + msg['host'] + "</b>");
-                game.host = msg['host'];
-            },
-            error: function() {
-                $(".cloudprovider").append("<b>unknown</b>");
-                game.cloudProvider = 'unknown';
-                $(".zone").append("<b>unknown</b>");
-                game.zone = 'unknown';
-                $(".host").append("<b>unknown</b>");
-                game.host = 'unknown';
             }
         });
     }
@@ -136,16 +108,13 @@ function geronimo() {
         });
     }
 
-    function ajaxUpdateUserStats(u, c, z, h, s, le, li, et) {
+    function ajaxUpdateUserStats(u, s, le, li, et) {
         $.ajax({
             type: "POST",
             datatype: "json",
             url: "user/stats",
             data: {
                 userId: u,
-                cloud: c,
-                zone: z,
-                host: h,
                 score: s,
                 level: le,
                 lives: li,
@@ -163,7 +132,7 @@ function geronimo() {
     function addHighscore() {
         var name = $("input[type=text]").val();
         $("#highscore-form").html("Saving highscore...");
-        ajaxAdd(name, game.cloudProvider, game.zone, game.host,
+        ajaxAdd(name, 'local', 'local', 'local',
                  game.score.score, game.level);
     }
 
@@ -171,12 +140,8 @@ function geronimo() {
         setTimeout(ajaxGetUserId, 30);
     }
 
-    function getCloudMetadata() {
-        setTimeout(ajaxGetCloudMetadata, 30);
-    }
-
     function updateUserStats() {
-        ajaxUpdateUserStats(game.user.id, game.cloudProvider, game.zone, game.host,
+        ajaxUpdateUserStats(game.user.id,
                             game.score.score, game.level, pacman.lives,
                             game.timer.getElapsedTimeSecs());
     }
@@ -1400,7 +1365,7 @@ function checkAppCache() {
         hideAdressbar();
 
         // Get and show cloud location metadata
-        getCloudMetadata();
+        //getCloudMetadata();
 
         if (window.applicationCache != null) checkAppCache();
 

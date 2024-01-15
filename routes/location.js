@@ -11,20 +11,20 @@ router.use(function timeLog(req, res, next) {
     next();
 })
 
-router.get('/metadata', function(req, res, next) {
-    console.log('[GET /loc/metadata]');
-    var h = getHost();
-    getCloudMetadata(function(c, z) {
-        console.log(`CLOUD: ${c}`);
-        console.log(`ZONE: ${z}`);
-        console.log(`HOST: ${h}`);
-        res.json({
-            cloud: c,
-            zone: z,
-            host: h
-        });
-    });
-});
+// router.get('/metadata', function(req, res, next) {
+//     console.log('[GET /loc/metadata]');
+//     var h = getHost();
+//     getCloudMetadata(function(c, z) {
+//         console.log(`CLOUD: ${c}`);
+//         console.log(`ZONE: ${z}`);
+//         console.log(`HOST: ${h}`);
+//         res.json({
+//             cloud: c,
+//             zone: z,
+//             host: h
+//         });
+//     });
+// });
 
 function getCloudMetadata(callback) {
     console.log('getCloudMetadata');
