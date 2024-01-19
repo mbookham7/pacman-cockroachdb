@@ -1,5 +1,15 @@
 # pacman-cockroachdb
 
+### Cloud setup
+
+Kubernetes secrets
+
+``` sh
+kubectl create secret generic db-user-pass \
+  --from-literal=DATABASE_URL=[UPDATE] \
+  --from-literal=REGION=[UPDATE]
+```
+
 ### Local setup
 
 ``` sh
