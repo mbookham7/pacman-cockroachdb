@@ -33,10 +33,10 @@ function geronimo() {
 
     /* AJAX stuff */
     function getHighscore() {
-        setTimeout(ajax_get,30);
+        setTimeout(getHighScores,30);
     }
 
-    function ajax_get() {
+    function getHighScores() {
         $.ajax({
            datatype: "json",
            type: "GET",
@@ -46,7 +46,13 @@ function geronimo() {
              for (var i = 0; i < msg.length; i++) {
                 var rank = i + 1;
                 // Can we make this shorter?
-                $("#highscore-table tbody").append("<tr><td id='rank'>" + rank + "</td><td id='playername'>" + msg[i]['name'] + "</td><td id='score'>" + msg[i]['score'] + "</td></tr>");
+                $("#highscore-table tbody").append(
+                    "<tr><td id='rank'>" + rank +
+                    "</td><td id='playername'>" + msg[i]['name'] +
+                    "</td><td id='region'>" + msg[i]['region'] +
+                    "</td><td id='score'>" + msg[i]['score'] +
+                    "</td></tr>"
+                );
              }
            }
         });
@@ -76,8 +82,7 @@ function geronimo() {
         });
     }
 
-    function ajaxAdd(n, c, z, h, s, l) {
-
+    function addHighScore(n, c, z, h, s, l) {
         $.ajax({
            type: 'POST',
            url: 'highscores',
@@ -132,7 +137,7 @@ function geronimo() {
     function addHighscore() {
         var name = $("input[type=text]").val();
         $("#highscore-form").html("Saving highscore...");
-        ajaxAdd(name, 'local', 'local', 'local',
+        addHighScore(name, 'local', 'local', 'local',
                  game.score.score, game.level);
     }
 

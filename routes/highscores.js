@@ -16,7 +16,7 @@ router.get("/list", urlencodedParser, async function (req, res, next) {
   console.log("[GET /highscores/list]");
   const db = Database.getDb();
   var get_highscores =
-    "SELECT name, score FROM highscores ORDER BY score DESC LIMIT 10";
+    "SELECT name, region, score FROM highscores ORDER BY score DESC LIMIT 10";
 
   const dbRes = await db.query(get_highscores);
 
@@ -48,10 +48,9 @@ router.post("/", urlencodedParser, async function (req, res, next) {
 
   // Insert high score with extra user data
   var insert_score =
-    "INSERT INTO highscores (name, score, level, date) VALUES ($1, $2, $3, now())";
-  console.log("INSERT QUERY: " + insert_score);
+    "INSERT INTO highscores (name, score, level, region, date) VALUES ($1, $2, $3, $4, now())";
 
-  const args = [req.body.name, userScore, userLevel];
+  const args = [req.body.name, userScore, userLevel, process.env.REGION];
   await db.query(insert_score, args);
 
   res.json({
