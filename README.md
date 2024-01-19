@@ -12,6 +12,8 @@ cockroach demo \
 
 ### Database
 
+Create
+
 ``` sql
 CREATE DATABASE pacman
   PRIMARY REGION 'us-east-1'
@@ -25,6 +27,40 @@ CREATE TABLE highscores (
   "score" INT NOT NULL,
   "level" INT NOT NULL,
   "region" crdb_internal_region NOT NULL,
-  "date" DATE NOT NULL
+  "date" DATE NOT NULL DEFAULT now()::DATE
 ) LOCALITY GLOBAL;
 ```
+
+Insert test data
+
+``` sql
+INSERT INTO highscores (name, score, level, region) VALUES
+  ('a', 100, 1, 'eu-west-2'),
+  ('b', 200, 1, 'eu-west-2'),
+  ('c', 300, 1, 'us-east-1'),
+  ('d', 400, 1, 'us-east-1'),
+  ('e', 500, 1, 'us-west-2');
+```
+
+Debugging queries
+
+``` sql
+-- Get region highscores.
+WITH
+  scores AS (
+    SELECT
+      region,
+      SUM(score) AS score
+    FROM highscores
+    GROUP BY region
+  ) 
+SELECT
+  RANK() OVER(ORDER BY score DESC) "rank",
+  *
+FROM scores
+ORDER BY score DESC;
+```
+
+RANK () OVER ( 
+		ORDER BY c 
+	) rank_number 

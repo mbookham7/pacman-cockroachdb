@@ -58,6 +58,31 @@ function geronimo() {
         });
     }
 
+    function getRegionHighscore() {
+        setTimeout(getRegionHighScores,30);
+    }
+
+    function getRegionHighScores() {
+        $.ajax({
+           datatype: "json",
+           type: "GET",
+           url: "highscores/region",
+           success: function(msg){
+             $("#region-highscore-table tbody").text("");
+             for (var i = 0; i < msg.length; i++) {
+                var rank = i + 1;
+                // Can we make this shorter?
+                $("#region-highscore-table tbody").append(
+                    "<tr><td id='rank'>" + rank +
+                    "</td><td id='region'>" + msg[i]['region'] +
+                    "</td><td id='score'>" + msg[i]['score'] +
+                    "</td></tr>"
+                );
+             }
+           }
+        });
+    }
+
     function getLiveStats() {
         setTimeout(ajaxGetLiveStats, 30);
     }
@@ -1470,6 +1495,10 @@ function checkAppCache() {
         $(document).on('click','.button#highscore',function(event) {
             game.showContent('highscore-content');
             getHighscore();
+        });
+        $(document).on('click','.button#region-highscore',function(event) {
+            game.showContent('region-highscore-content');
+            getRegionHighscore();
         });
         $(document).on('click','.button#livestats',function(event) {
             game.showContent('livestats-content');

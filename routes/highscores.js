@@ -28,6 +28,34 @@ router.get("/list", urlencodedParser, async function (req, res, next) {
   res.json(result);
 });
 
+router.get("/region", urlencodedParser, async function (req, res, next) {
+  console.log("[GET /highscores/region]");
+  const db = Database.getDb();
+  var get_highscores =
+    `WITH
+      scores AS (
+        SELECT
+          region,
+          SUM(score) AS score
+        FROM highscores
+        GROUP BY region
+      ) 
+    SELECT
+      RANK() OVER(ORDER BY score DESC) "rank",
+      *
+    FROM scores
+    ORDER BY score DESC`;
+
+  const dbRes = await db.query(get_highscores);
+
+  var result = [];
+  for (var i = 0; i < dbRes.rows.length; i++) {
+    result.push(dbRes.rows[i]);
+  }
+
+  res.json(result);
+});
+
 // Accessed at /highscores
 router.post("/", urlencodedParser, async function (req, res, next) {
   console.log(
