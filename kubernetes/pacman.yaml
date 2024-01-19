@@ -1,19 +1,38 @@
+# Pod
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: app
+  name: pacman
 spec:
   selector:
     matchLabels:
-      app: app
+      app: pacman
   strategy:
     type: Recreate
   template:
     metadata:
       labels:
-        app: app
+        app: pacman
     spec:
       containers:
       - image: codingconcepts/pacman:v1.0.0
         imagePullPolicy: Always
-        name: app
+        name: pacman
+
+---
+
+# Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: pacman
+  labels:
+    app: pacman
+spec:
+  ports:
+  - port: 8080
+    targetPort: 8080
+    name: http
+  selector:
+    app: pacman
+  type: LoadBalancer
