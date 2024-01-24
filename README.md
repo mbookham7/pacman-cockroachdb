@@ -1,6 +1,6 @@
 # pacman-cockroachdb
 
-### Cloud setup
+### Self-hosted setup
 
 Kubernetes secrets
 
@@ -10,6 +10,27 @@ kubectl create secret generic db-user-pass \
   --from-literal=REGION=[UPDATE]
 ```
 
+### Serverless / fly.io setup
+
+1. Create a Serverless database with the following regions:
+
+* aws-eu-central-1
+* aws-azure-uk
+* aws-azure-ukwest
+
+2. Create the database as per the steps below
+
+3. Deploy application to fly.io with the following steps
+
+``` sh
+fly launch --no-deploy
+
+fly secrets set DATABASE_URL="postgresql://pacman_service:qHObg8Muv7-9gwUDQEX97w@pacman-853.j77.cockroachlabs.cloud:26257/defaultdb?sslmode=verify-full"
+fly secrets set REGION="aws-eu-central-1"
+
+fly deploy #-i registry.fly.io/crdb-latency-testing:latest --remote-only
+```
+
 ### Local setup
 
 ``` sh
@@ -17,7 +38,7 @@ cockroach demo \
   --insecure \
   --nodes 9 \
   --no-example-database \
-  --demo-locality=region=us-east-1,az=1:region=us-east-1,az=2:region=us-east-1,az=3:region=us-west-2,az=1:region=us-west-2,az=2:region=us-west-2,az=3:region=eu-west-2,az=1:region=eu-west-2,az=2:region=eu-west-2,az=3
+  --demo-locality=region=azure-uksouth,az=1:region=azure-uksouth,az=2:region=azure-uksouth,az=3:region=azure-ukwest,az=1:region=azure-ukwest,az=2:region=azure-ukwest,az=3:region=azure-northeurope,az=1:region=azure-northeurope,az=2:region=azure-northeurope,az=3
 ```
 
 ### Database
@@ -26,8 +47,8 @@ Create
 
 ``` sql
 CREATE DATABASE pacman
-  PRIMARY REGION 'us-east-1'
-  REGIONS 'us-west-2', 'eu-west-2';
+  PRIMARY REGION 'azure-uksouth'
+  REGIONS 'azure-ukwest', 'azure-northeurope';
 
 USE pacman;
 
@@ -45,11 +66,9 @@ Insert test data
 
 ``` sql
 INSERT INTO highscores (name, score, level, region) VALUES
-  ('a', 100, 1, 'eu-west-2'),
-  ('b', 200, 1, 'eu-west-2'),
-  ('c', 300, 1, 'us-east-1'),
-  ('d', 400, 1, 'us-east-1'),
-  ('e', 500, 1, 'us-west-2');
+  ('Kai', 480, 1, 'azure-northeurope'),
+  ('Mike', 200, 1, 'azure-ukwest'),
+  ('Rob', 100, 1, 'azure-uksouth');
 ```
 
 Debugging queries
@@ -70,7 +89,3 @@ SELECT
 FROM scores
 ORDER BY score DESC;
 ```
-
-RANK () OVER ( 
-		ORDER BY c 
-	) rank_number 
