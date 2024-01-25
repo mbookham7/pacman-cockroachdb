@@ -85,9 +85,7 @@ tr:hover {
 #livestats-table { width: 100%; text-align: center;}
 #rank {}
 #playername {}
-#cloudprovider {}
-#zone {}
-#host {}
+#region {}
 #score {}
 #userid {}
 #level {}
