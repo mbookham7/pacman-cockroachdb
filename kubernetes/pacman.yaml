@@ -3,21 +3,43 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: pacman
+  labels:
+    app: pacman
 spec:
+  replicas: 1
   selector:
     matchLabels:
       app: pacman
-  strategy:
-    type: Recreate
   template:
     metadata:
       labels:
         app: pacman
     spec:
       containers:
-      - image: codingconcepts/pacman:v1.0.0
+      - image: codingconcepts/pacman:v1.3.0
         imagePullPolicy: Always
+        volumeMounts:
+        - name: client-certs
+          mountPath: /cockroach
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: db-user-pass
+              key: DATABASE_URL
+        - name: REGION
+          valueFrom:
+            secretKeyRef:
+              name: app-region
+              key: REGION
         name: pacman
+        ports:
+        - containerPort: 8080
+      volumes:
+      - name: client-certs
+        secret:
+          secretName: cockroachdb.client.root
+          defaultMode: 256
 
 ---
 
@@ -30,7 +52,7 @@ metadata:
     app: pacman
 spec:
   ports:
-  - port: 8080
+  - port: 8090
     targetPort: 8080
     name: http
   selector:

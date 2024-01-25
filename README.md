@@ -1,33 +1,20 @@
-# pacman-cockroachdb
+# Roachathon pacman-cockroachdb
 
-### Cloud setup
+A Cluster needs to be configured to use Enterprise Features for this demo. To enable the features you need to set the following cluster setting with a valid Enterprise license.
 
-Kubernetes secrets
-
-``` sh
-kubectl create secret generic db-user-pass \
-  --from-literal=DATABASE_URL=[UPDATE] \
-  --from-literal=REGION=[UPDATE]
+```sql
+SET CLUSTER SETTING cluster.organization = 'Cockroach Labs';
+SET CLUSTER SETTING enterprise.license = 'crl-0-';
 ```
 
-### Local setup
+## Database
 
-``` sh
-cockroach demo \
-  --insecure \
-  --nodes 9 \
-  --no-example-database \
-  --demo-locality=region=us-east-1,az=1:region=us-east-1,az=2:region=us-east-1,az=3:region=us-west-2,az=1:region=us-west-2,az=2:region=us-west-2,az=3:region=eu-west-2,az=1:region=eu-west-2,az=2:region=eu-west-2,az=3
-```
-
-### Database
-
-Create
+Create the `pacman` database.
 
 ``` sql
 CREATE DATABASE pacman
-  PRIMARY REGION 'us-east-1'
-  REGIONS 'us-west-2', 'eu-west-2';
+  PRIMARY REGION 'uksouth'
+  REGIONS 'eastus', 'westus';
 
 USE pacman;
 
@@ -41,36 +28,51 @@ CREATE TABLE highscores (
 ) LOCALITY GLOBAL;
 ```
 
-Insert test data
+## Cloud Setup
 
-``` sql
-INSERT INTO highscores (name, score, level, region) VALUES
-  ('a', 100, 1, 'eu-west-2'),
-  ('b', 200, 1, 'eu-west-2'),
-  ('c', 300, 1, 'us-east-1'),
-  ('d', 400, 1, 'us-east-1'),
-  ('e', 500, 1, 'us-west-2');
+Create a separate namespace to run our `pacman` game in.
+
+```sh
+kubectl create ns pacman --context $(terraform output -raw kubernetes_cluster_name_region_1)
+kubectl create ns pacman --context $(terraform output -raw kubernetes_cluster_name_region_2)
+kubectl create ns pacman --context $(terraform output -raw kubernetes_cluster_name_region_3)
+```
+Copy the existing secret for the `root` user containing the `ca.crt` and the certificate and key for client connection into the pacmam namespace.
+
+```sh
+kubectl get secret cockroachdb.client.root -n $(terraform output -raw crdb_namespace_region_1) --context $(terraform output -raw kubernetes_cluster_name_region_1) -o yaml \
+| sed s/"namespace: $(terraform output -raw crdb_namespace_region_1)"/"namespace: pacman"/\
+| kubectl apply -n pacman --context $(terraform output -raw kubernetes_cluster_name_region_1) -f -
+
+kubectl get secret cockroachdb.client.root -n $(terraform output -raw crdb_namespace_region_2) --context $(terraform output -raw kubernetes_cluster_name_region_2) -o yaml \
+| sed s/"namespace: $(terraform output -raw crdb_namespace_region_2)"/"namespace: pacman"/\
+| kubectl apply -n pacman --context $(terraform output -raw kubernetes_cluster_name_region_2) -f -
+
+kubectl get secret cockroachdb.client.root -n $(terraform output -raw crdb_namespace_region_3) --context $(terraform output -raw kubernetes_cluster_name_region_3) -o yaml \
+| sed s/"namespace: $(terraform output -raw crdb_namespace_region_3)"/"namespace: pacman"/\
+| kubectl apply -n pacman --context $(terraform output -raw kubernetes_cluster_name_region_3) -f -
 ```
 
-Debugging queries
+Create a secret with the connection string in each region. Also create a secret with the region name.
 
-``` sql
--- Get region highscores.
-WITH
-  scores AS (
-    SELECT
-      region,
-      SUM(score) AS score
-    FROM highscores
-    GROUP BY region
-  ) 
-SELECT
-  RANK() OVER(ORDER BY score DESC) "rank",
-  *
-FROM scores
-ORDER BY score DESC;
+```sh
+kubectl create secret generic db-user-pass --from-literal=DATABASE_URL='postgres://root@cockroachdb-public.uksouth.svc.cluster.local:26257/pacman?sslmode=verify-full&sslrootcert=/cockroach/ca.crt&sslcert=/cockroach/client.root.crt&sslkey=/cockroach/client.root.key' -n pacman --context $(terraform output -raw kubernetes_cluster_name_region_1)
+
+kubectl create secret generic app-region --from-literal=REGION='uksouth' -n pacman --context $(terraform output -raw kubernetes_cluster_name_region_1)
+
+kubectl create secret generic db-user-pass --from-literal=DATABASE_URL='postgres://root@cockroachdb-public.eastus.svc.cluster.local:26257/pacman?sslmode=verify-full&sslrootcert=/cockroach/ca.crt&sslcert=/cockroach/client.root.crt&sslkey=/cockroach/client.root.key'  -n pacman --context $(terraform output -raw kubernetes_cluster_name_region_2)
+
+kubectl create secret generic app-region --from-literal=REGION='eastus' -n pacman --context $(terraform output -raw kubernetes_cluster_name_region_2)
+
+kubectl create secret generic db-user-pass --from-literal=DATABASE_URL='postgres://root@cockroachdb-public.westus.svc.cluster.local:26257/pacman?sslmode=verify-full&sslrootcert=/cockroach/ca.crt&sslcert=/cockroach/client.root.crt&sslkey=/cockroach/client.root.key'  -n pacman --context $(terraform output -raw kubernetes_cluster_name_region_3)
+
+kubectl create secret generic app-region --from-literal=REGION='westus' -n pacman --context $(terraform output -raw kubernetes_cluster_name_region_3)
 ```
 
-RANK () OVER ( 
-		ORDER BY c 
-	) rank_number 
+Deploy Pacman in to each region.
+
+```sh
+kubectl apply -f pacman.yaml -n pacman --context $(terraform output -raw kubernetes_cluster_name_region_1)
+kubectl apply -f pacman.yaml -n pacman --context $(terraform output -raw kubernetes_cluster_name_region_2)
+kubectl apply -f pacman.yaml -n pacman --context $(terraform output -raw kubernetes_cluster_name_region_3)
+```
