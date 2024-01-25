@@ -25,7 +25,7 @@ kubectl create secret generic db-user-pass \
 ``` sh
 fly launch --no-deploy
 
-fly secrets set DATABASE_URL="postgresql://pacman_service:qHObg8Muv7-9gwUDQEX97w@pacman-853.j77.cockroachlabs.cloud:26257/defaultdb?sslmode=verify-full"
+fly secrets set DATABASE_URL=""
 fly secrets set REGION="aws-eu-central-1"
 
 fly deploy #-i registry.fly.io/crdb-latency-testing:latest --remote-only
