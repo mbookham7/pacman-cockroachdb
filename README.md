@@ -50,6 +50,13 @@ SET CLUSTER SETTING cluster.organization = 'Cockroach Labs';
 SET CLUSTER SETTING enterprise.license = 'crl-0-';
 ```
 
+```
+INSERT INTO system.locations VALUES
+  ('region', 'uksouth', 50.941, -0.799),
+  ('region', 'eastus', 37.3719, -79.8164),
+  ('region', 'westus', 37.783, -122.417);
+  ```
+
 ## Database
 
 Create the `pacman` database.
@@ -115,7 +122,7 @@ kubectl create secret generic app-region --from-literal=REGION='westus' -n pacma
 Deploy Pacman in to each region.
 
 ```sh
-kubectl apply -f pacman.yaml -n pacman --context $(terraform output -raw kubernetes_cluster_name_region_1)
-kubectl apply -f pacman.yaml -n pacman --context $(terraform output -raw kubernetes_cluster_name_region_2)
-kubectl apply -f pacman.yaml -n pacman --context $(terraform output -raw kubernetes_cluster_name_region_3)
+kubectl apply -f ./kubernetes/pacman.yaml -n pacman --context $(terraform output -raw kubernetes_cluster_name_region_1)
+kubectl apply -f ./kubernetes/pacman.yaml -n pacman --context $(terraform output -raw kubernetes_cluster_name_region_2)
+kubectl apply -f ./kubernetes/pacman.yaml -n pacman --context $(terraform output -raw kubernetes_cluster_name_region_3)
 ```
